@@ -56,18 +56,18 @@ function parse() {
         let k = split[0]?.trim();
         let v = split[1]?.trim();
 
-        if (isDigit(k[0])) {
-            errors.push(`invalid key on line ${i}: key name cannot start with digit`);
+        if (k.length === 0) {
+            errors.push(`line ${i}: missing key`);
             continue;
         }
-        if (k.length === 0) {
-            errors.push(`missing key on line ${i}`);
+        if (!isAlpha(k[0])) {
+            errors.push(`line ${i}: invalid key "${k}": key name must start with a letter`);
             continue;
         }
 
         v = trimQuotes(v);
         if (v.length === 0) {
-            errors.push(`missing value on line ${i}`);
+            errors.push(`line ${i}: missing value`);
             continue;
         }
         pairs.push([k, v]);
@@ -84,8 +84,8 @@ function parse() {
     return { pairs, errors: errors.length !== 0 };
 }
 
-function isDigit(c) {
-    return c >= "0" && c <= "9";
+function isAlpha(c) {
+    return (c >= "a" && c <= "z") || (c >= "A" && c <= "Z");
 }
 
 function trimQuotes(s) {
@@ -129,3 +129,4 @@ export function loadEnv() {
     );
 }
 
+loadEnv();
