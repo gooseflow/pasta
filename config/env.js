@@ -14,7 +14,7 @@ const msg = {
 function parse() {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
-    const rootDir = resolve(__dirname, '..');
+    const rootDir = resolve(__dirname, "..");
     let file;
 
     const pairs = [];
