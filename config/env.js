@@ -21,7 +21,8 @@ function parse() {
     const errors = [];
 
     try {
-        file = readFileSync(join(rootDir, ".env"), { encoding: "utf8" });
+        let filename = process.env.PASTA_ENV === "test" ? ".env_test" : ".env"
+        file = readFileSync(join(rootDir, filename), { encoding: "utf8" });
     } catch (err) {
         if (err.code === "ENOENT") {
             console.log(
