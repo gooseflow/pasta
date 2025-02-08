@@ -11,7 +11,7 @@ const msg = {
     fileEmpty: ".env file is empty"
 }
 
-function parse() {
+function parse(filename) {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
     const rootDir = resolve(__dirname, "..");
@@ -21,7 +21,6 @@ function parse() {
     const errors = [];
 
     try {
-        let filename = process.env.PASTA_ENV === "test" ? ".env_test" : ".env"
         file = readFileSync(join(rootDir, filename), { encoding: "utf8" });
     } catch (err) {
         if (err.code === "ENOENT") {
@@ -105,7 +104,7 @@ function trimQuotes(s) {
 }
 
 export function loadEnv() {
-    const { pairs, errors } = parse();
+    const { pairs, errors } = parse(".env");
 
     for (let i = 0; i < pairs.length; i++) {
         process.env[pairs[i][0]] = pairs[i][1];
