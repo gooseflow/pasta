@@ -2,33 +2,38 @@ import { fileURLToPath } from 'url';
 import { dirname, join, resolve } from 'path';
 import { readFileSync } from 'fs';
 
-const msg = {
+export const envMessages = {
     ansiSuccess: "\x1b[32m",
     ansiWarn: "\x1b[33m",
     ansiReset: "\x1b[0m",
     parse: "Warning! Could not parse environment variables: ",
     fileNotFound: "no .env file found in the project's root dir",
-    fileEmpty: ".env file is empty"
+    fileEmpty: ".env file is empty",
+    missingKey: i => `line ${i}: missing key`,
+    invalidKey: (i, k) => `line ${i}: invalid key "${k}": key name must start with a letter`,
+    missingVal: i => `line ${i}: missing value`,
+    loadedWithWarn: ".env file successfully loaded - some warnings present",
+    loaded: ".env file successfully loaded"
 }
 
-function parse(filename) {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
-    const rootDir = resolve(__dirname, "..");
+function parse(fileName) {
+    const filePath = fileURLToPath(import.meta.url);
+    const dir = dirname(filePath);
+    const rootDir = resolve(dir, "..");
     let file;
 
     const pairs = [];
     const errors = [];
 
     try {
-        file = readFileSync(join(rootDir, filename), { encoding: "utf8" });
+        file = readFileSync(join(rootDir, fileName), { encoding: "utf8" });
     } catch (err) {
         if (err.code === "ENOENT") {
             console.log(
-                msg.ansiWarn +
-                msg.parse +
-                msg.fileNotFound +
-                msg.ansiReset
+                envMessages.ansiWarn +
+                envMessages.parse +
+                envMessages.fileNotFound +
+                envMessages.ansiReset
             );
         } else {
             console.error(err);
@@ -38,10 +43,10 @@ function parse(filename) {
 
     if (file.length === 0) {
         console.log(
-            msg.ansiWarn +
-            msg.parse +
-            msg.fileEmpty +
-            msg.ansiReset
+            envMessages.ansiWarn +
+            envMessages.parse +
+            envMessages.fileEmpty +
+            envMessages.ansiReset
         );
     }
 
@@ -57,17 +62,17 @@ function parse(filename) {
         let v = split[1]?.trim();
 
         if (k.length === 0) {
-            errors.push(`line ${i}: missing key`);
+            errors.push(envMessages.missingKey(i + 1));
             continue;
         }
         if (!isAlpha(k[0])) {
-            errors.push(`line ${i}: invalid key "${k}": key name must start with a letter`);
+            errors.push(envMessages.invalidKey(i + 1, k));
             continue;
         }
 
         v = trimQuotes(v);
         if (v.length === 0) {
-            errors.push(`line ${i}: missing value`);
+            errors.push(envMessages.missingVal(i + 1));
             continue;
         }
         pairs.push([k, v]);
@@ -75,9 +80,9 @@ function parse(filename) {
 
     for (let i = 0; i < errors.length; i++) {
         console.log(
-            msg.ansiWarn +
+            envMessages.ansiWarn +
             errors[i] +
-            msg.ansiReset
+            envMessages.ansiReset
         );
     }
 
@@ -103,8 +108,8 @@ function trimQuotes(s) {
     return s;
 }
 
-export function loadEnv() {
-    const { pairs, errors } = parse(".env");
+export function loadEnv(fileName = ".env") {
+    const { pairs, errors } = parse(fileName);
 
     for (let i = 0; i < pairs.length; i++) {
         process.env[pairs[i][0]] = pairs[i][1];
@@ -116,16 +121,16 @@ export function loadEnv() {
 
     if (errors) {
         console.log(
-            msg.ansiSuccess +
-            ".env file successfully loaded - some warnings present" +
-            msg.ansiReset
+            envMessages.ansiSuccess +
+            envMessages.loadedWithWarn +
+            envMessages.ansiReset
         );
         return;
     }
     console.log(
-        msg.ansiSuccess +
-        ".env file successfully loaded" +
-        msg.ansiReset
+        envMessages.ansiSuccess +
+        envMessages.loaded +
+        envMessages.ansiReset
     );
 }
 
